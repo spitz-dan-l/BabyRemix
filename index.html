@@ -163,8 +163,6 @@ function init() {
             }
 
             if (track.status == 'ok') {
-                $("#bars").text("The track has " + track.analysis.bars.length + " bars");
-                $("#beats").text("The track has " + track.analysis.beats.length + " beats");
                 $("#info").text("Remix complete!");
                 remixed = new Array();
                 for (var i=0; i < track.analysis.beats.length; i++) {
@@ -183,7 +181,7 @@ window.onload = init;
 </script>
 
 Welcome to BabyRemix
-<br /><i>"Dip one's filth in BabyRemix."</i>
+<br /><i>"One ought to dip one's filth in BabyRemix."</i>
 <br />Slam on the letters and numbers like the baby you are and produce genius music
 <br />Space to stop music.
 <div id='info'> </div>
