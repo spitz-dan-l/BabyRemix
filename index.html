@@ -21,7 +21,7 @@ var player;
 var track;
 var remixed;
 
-keyOrder = [
+var keyOrder = [
     49, //1
     50, //2
     51, //3
@@ -36,7 +36,7 @@ keyOrder = [
     81, //q
     87, //w
     69, //e
-    82,
+    82, //r
     84,
     89,
     85,
@@ -63,7 +63,7 @@ keyOrder = [
     77
 ];
 
-keyMap = {};
+var keyMap = {};
 for (var i = 0; i < keyOrder.length; i++){
     keyMap[keyOrder[i]] = i;
 }
