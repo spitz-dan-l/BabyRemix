@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset=utf-8>
+</head>
+
+<body>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript" src='remix.js'></script>
+<script type="text/javascript">
+
+// First-beat extraction and assembly
+// You will need to supply your Echo Nest API key, the trackID, and a URL to the track.
+// The supplied track can be found in the audio subdirectory.
+var apiKey = 'E3NDSDILFYFA4JMLN';
+var trackID = 'TRWHQOK13B357AB74A'; //'TRCYWPQ139279B3308';
+var trackURL = 'audio/Sail.mp3'; //'audio/1451_-_D.mp3'
+
+var remixer;
+var player;
+var track;
+var remixed;
+
+keyOrder = [
+    49, //1
+    50, //2
+    51, //3
+    52, //4
+    53, //5
+    54, //6
+    55, //7
+    56, //8
+    57, //9
+    48, //0
+    
+    81, //q
+    87, //w
+    69, //e
+    82,
+    84,
+    89,
+    85,
+    73,
+    79,
+    80,
+    
+    65,
+    83,
+    68,
+    70,
+    71,
+    72,
+    74,
+    75,
+    76,
+    
+    90,
+    88,
+    67,
+    86,
+    66,
+    78,
+    77
+];
+
+keyMap = {};
+for (var i = 0; i < keyOrder.length; i++){
+    keyMap[keyOrder[i]] = i;
+}
+
+var currentIndex = null; 
+var nextIndex = null;
+var playing = false;
+
+function transition(){
+    console.log('calling transition');
+    if (nextIndex === null){
+        //just play the same one as last time
+        nextIndex = currentIndex;
+    } else {
+        updateVisual(); //update visual on new key
+    }
+    if (nextIndex >= remixed.length){
+        stop();
+        return;
+    }
+    playNext();
+}
+
+function handleKeyDown(event){
+    console.log('key pressed: '+event.which)
+    if (event.which == 32) {
+        stop();
+        return;
+    }
+    
+    var mappedKey = keyMap[event.which];
+    console.log('mapped to '+mappedKey);
+    if (mappedKey === undefined){
+        return;
+    }
+    var total = remixed.length;
+    var multiplier = total / keyOrder.length;
+    
+    var index = Math.round(mappedKey * multiplier);
+    console.log('looking up chunk '+index);
+    nextIndex = index;
+    
+    if (!playing){
+        playNext()
+    }
+    event.preventDefault();
+    return false;
+}
+
+function playNext(){
+    if (!playing){
+        playing = true;
+        player.play(0, remixed[nextIndex]);
+        updateVisual();
+    } else {
+        console.log('queing a thing');
+        player.queue(remixed[nextIndex]);
+    }
+    currentIndex = nextIndex;
+    nextIndex = null;
+    $("#current").text('playing chunk '+currentIndex);
+}
+
+function stop(){
+    player.stop();
+    currentIndex = null;
+    nextIndex = null;
+    playing = false;
+    $("#current").text('stopped');
+    updateVisual('white');
+}
+
+function updateVisual(choice){
+    if (choice === undefined){
+        var colors = ['red', 'black', 'blue', 'green', 'pink', 'purple', 'orange'];
+        choice = colors[Math.floor(Math.random() * colors.length)];
+    }
+    document.body.style.background = choice;
+}
+
+function init() {
+    if (window.webkitAudioContext === undefined) {
+        error("Sorry, this app needs advanced web audio. Your browser doesn't"
+            + " support it. Try the latest version of Chrome");
+    } else {
+        var context = new webkitAudioContext();
+        remixer = createJRemixer(context, $, apiKey);
+        player = remixer.getPlayer();
+        $("#info").text("Loading analysis data...");
+
+        remixer.remixTrackById(trackID, trackURL, function(t, percent) {
+            track = t;
+
+            $("#info").text(percent + "% of the track loaded");
+            if (percent == 100) {
+                $("#info").text(percent + "% of the track loaded, remixing...");
+            }
+
+            if (track.status == 'ok') {
+                $("#bars").text("The track has " + track.analysis.bars.length + " bars");
+                $("#beats").text("The track has " + track.analysis.beats.length + " beats");
+                $("#info").text("Remix complete!");
+                remixed = new Array();
+                for (var i=0; i < track.analysis.beats.length; i++) {
+                    remixed.push(track.analysis.beats[i]);
+                }
+                player.addAfterPlayCallback(transition);
+                // Set up the keyboard controls
+                document.addEventListener('keydown', handleKeyDown);
+            }
+        });
+    }
+}
+    
+
+window.onload = init;
+</script>
+
+Welcome to BabyRemix
+<br />Slam on the letters and numbers like the baby you are and produce genius music
+<br />Space to stop music.
+<div id='info'> </div>
+<div id='current'> </div>
+</body>
+
+
+
+</html>
